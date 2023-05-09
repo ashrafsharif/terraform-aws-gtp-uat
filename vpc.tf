@@ -5,7 +5,7 @@
 # Specify the target VPC here. Change the filter values (for tag:Name) accordingly for precise subnet lookups
 
 data "aws_vpc" "target_vpc" {
-  id = "vpc-0ff57649c483b7635"
+  id = var.target_vpc_id
 }
 
 data "aws_subnets" "public" {
