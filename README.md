@@ -112,7 +112,7 @@ Collecting information.. Do not enter blank values!
 Enter the MySQL endpoint (without port) : gtpuatmysql.cdw9q2wnb00s.ap-southeast-1.rds.amazonaws.com
 Enter the Redis endpoint (without port) : gtp-uat-redis.u2yh4k.0001.apse1.cache.amazonaws.com
 Enter MySQL admin username              : gtpdbadmin
-Enter MySQL admin password              : MyGH7b3J
+Enter MySQL admin password              : mySuperSecretP455
 Enter MySQL user to create              : gtp
 Enter MySQL user password for gtp : HbY6sdGbfhhsg4eC
 

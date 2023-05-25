@@ -91,3 +91,9 @@ resource "aws_autoscaling_group" "gtp_uat_app" {
   }
 
 }
+
+resource "aws_s3_object" "object" {
+  bucket = var.s3_bucket_name
+  key    = "configs/deployed_flag"
+  source = "deployed_flag"
+}

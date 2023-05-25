@@ -99,10 +99,22 @@ $aws_exec s3 cp s3://${AWS_S3_BUCKET_NAME}/gtp.zip .
 $aws_exec s3 cp s3://${AWS_S3_BUCKET_NAME}/gtp-db.tar.gz .
 unzip gtp.zip
 cd /usr/local/nginx/html/gtp/source/snapapp_otc
-$aws_exec s3 cp s3://${AWS_S3_BUCKET_NAME}/configs/config.ini .
-cd /root/
-$aws_exec s3 cp s3://${AWS_S3_BUCKET_NAME}/configs/bootstrap.sh .
-sudo chmod 755 /root/bootstrap.sh
+$aws_exec s3api head-object --bucket ${AWS_S3_BUCKET_NAME} --key configs/deployed_flag && DEPLOY_FLAG_EXISTS=true
+$aws_exec s3api head-object --bucket ${AWS_S3_BUCKET_NAME} --key configs/config-bootstrapped.ini && CONFIG_EXISTS=true
+if [ $DEPLOY_FLAG_EXISTS ]; then
+    if [ $CONFIG_EXISTS ]; then
+        $aws_exec s3 cp s3://${AWS_S3_BUCKET_NAME}/configs/config-bootstrapped.ini .
+        mv config-bootstrapped.ini config.ini
+    else
+        $aws_exec s3 cp s3://${AWS_S3_BUCKET_NAME}/configs/config.ini .
+        cd /root/
+        $aws_exec s3 cp s3://${AWS_S3_BUCKET_NAME}/configs/bootstrap.sh .
+        sudo chmod 755 /root/bootstrap.sh
+        sed -i "s/@@S3BUCKET@@/${AWS_S3_BUCKET_NAME}/g" /root/bootstrap.sh
+    fi
+else
+    $aws_exec s3 cp s3://${AWS_S3_BUCKET_NAME}/configs/config.ini .
+fi
 sudo touch /.user-data-app.git.complete
 cd /usr/local/nginx/html/
 sudo rm -Rf gtp.zip __MACOSX

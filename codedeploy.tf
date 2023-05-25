@@ -12,7 +12,7 @@ resource "aws_codedeploy_deployment_config" "gtp_uat_app" {
 
   minimum_healthy_hosts {
     type  = "HOST_COUNT"
-    value = 1
+    value = 0
   }
 }
 
@@ -23,7 +23,7 @@ resource "aws_sns_topic" "gtp_uat_app" {
 resource "aws_codedeploy_deployment_group" "gtp_uat_app" {
   app_name               = aws_codedeploy_app.gtp_uat_app.name
   deployment_group_name  = "gtp-uat-app"
-  service_role_arn       = aws_iam_role.gtp_uat_app_role.arn
+  service_role_arn       = aws_iam_role.gtp_uat_app_codedeploy_service.arn
   deployment_config_name = aws_codedeploy_deployment_config.gtp_uat_app.id
 
   ec2_tag_filter {

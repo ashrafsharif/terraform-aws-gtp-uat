@@ -5,7 +5,7 @@
 # IAM for Codedeploy
 #####################
 
-resource "aws_iam_role" "gtp_uat_app_role" {
+resource "aws_iam_role" "gtp_uat_app_codedeploy_service" {
   name = "codedeploy-service-role"
 
   assume_role_policy = jsonencode({
@@ -23,8 +23,8 @@ resource "aws_iam_role" "gtp_uat_app_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "test-attach" {
-  role       = aws_iam_role.gtp_uat_app_role.name
+resource "aws_iam_role_policy_attachment" "codedeploy_service" {
+  role       = aws_iam_role.gtp_uat_app_codedeploy_service.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
 }
 
@@ -79,6 +79,11 @@ resource "aws_iam_role_policy_attachment" "gtp_uat_ec2_instance_profile" {
 resource "aws_iam_role_policy_attachment" "gtp_uat_cloudwatch_instance_profile" {
   role       = aws_iam_role.gtp_uat_ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "gtp_uat_codedeploy_instance_profile" {
+  role       = aws_iam_role.gtp_uat_ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy"
 }
 
 # the instance profile will be attached to EC2 instance to allow CodeDeploy. See aws_launch_configuration.
