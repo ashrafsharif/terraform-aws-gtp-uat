@@ -140,7 +140,7 @@ You may access the application from the load balancer endpoint.
 The deployment is now complete. Alternatively, you may simplify the URL by creating a DNS CNAME record and point it to the load balancer DNS name (`app_endpoint` value). For example, you would add the following in your DNS zone:
 
 ```
-myapp.mydomain.com.      CNAME     500     gtp-uat-app-lb-2144828538.ap-southeast-1.elb.amazonaws.com
+myapp.mydomain.com.      CNAME     500     gtp-uat-app-lb-466289495.ap-southeast-1.elb.amazonaws.com
 ```
 
 You should be able to access it via https://myapp.mydomain.com after the DNS is propagated.
