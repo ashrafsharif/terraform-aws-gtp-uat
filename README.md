@@ -16,34 +16,16 @@ git clone https://github.com/ashrafsharif/terraform-aws-gtp-uat
 cd terraform-aws-gtp-uat
 ```
 
-4) Specify the required values in the following files and lines:
+4) Create a private S3 bucket (if not exists) named `gtp-uat-app-bucket`. Use your AWS Management Console.
 
-  4.1) AWS access key and secret - `terraform.tfvars` on line 1 to 6 (the account should have all the AWS privileges):
-  
-  ```ruby
-  aws_access_key       = "AKIAJ..."
-  aws_access_secret    = "wvXTg..."
-  target_vpc_id        = "vpc-0ff57649c483b7635"
-  keypair              = "my-keypair"
-  mysql_admin_user     = "gtp_db_admin"
-  mysql_admin_password = "mySuperSecretP455"
-  ```
-  
-  4.2) AWS CloudWatch access key and secret - `user-data-app.sh` on line 6 & 7 (you may use the same value as specified at 4.1):
-  
-  ```bash
-  AWS_CLOUDWATCH_ACCESS_KEY_ID=''
-  AWS_CLOUDWATCH_SECRET_ACCESS=''
-  ```
-  
-5) Create a private S3 bucket (if no exists) named `gtp-uat-app`. Use your AWS Management Console.
-
-6) Upload the following files (this will be provided separately):
+5) Upload the following files (this will be provided separately):
 
 ```
 $ tree
 .
 ├── configs
+│   ├── amazon-cloudwatch-agent.json
+│   ├── bootstrap.sh
 │   ├── config.ini
 │   ├── gtp.conf
 │   ├── nginx.conf
@@ -52,15 +34,32 @@ $ tree
 └── gtp.zip
 ```
 
-*** The above has 1 directory called `configs`, 4 files under that directory, and 2 more files on the parent directory, `gtp-db.tar.gz` (db schema) and `gtp.zip` (app).
+*** The above has 1 directory called `configs` with 6 files underneath it, and 2 more files in the parent directory, `gtp-db.tar.gz` (db schema) and `gtp.zip` (app).
 
-6) Under the `terraform-aws-gtp-uat` directory, initialize Terraform modules:
+6) Specify the required values in `terraform.tfvars` (the AWS access account should have AWS admin privileges):
+  
+```ruby
+aws_access_key          = "AKIAJ..."
+aws_access_secret       = "wvXTg..."
+target_vpc_id           = "vpc-0ff57649c483b7635"
+keypair_name            = "my-keypair"
+s3_bucket_name          = "gtp-uat-app-bucket"
+mysql_admin_user        = "gtpdbadmin"
+mysql_admin_password    = "mySuperSecretP455"
+tls_common_name         = "subdomain.domain.com.my"
+tls_organizational_unit = "Dev team"
+tls_organization        = "ABCD Sdn Bhd"
+tls_country             = "MY"
+```
+ 
+
+7) Under the `terraform-aws-gtp-uat` directory, initialize Terraform modules:
 
 ```
 terraform init
 ```
 
-7) Start the deployment:
+8) Start the deployment:
 
 ```
 terraform plan # make sure no error in the planning stage
@@ -72,7 +71,7 @@ terraform apply # type 'yes' in the prompt
 1) You shall see the following output after the Terraform deployment completes:
 
 ```ruby
-app_endpoint = "gtp-uat-app-lb-2144828538.ap-southeast-1.elb.amazonaws.com"
+app_endpoint = "gtp-uat-app-lb-466289495.ap-southeast-1.elb.amazonaws.com"
 app_name = "gtp-uat-app"
 mysql_rds_endpoint = "gtpuatmysql.cdw9q2wnb00s.ap-southeast-1.rds.amazonaws.com:3306"
 redis_endpoint = tolist([
@@ -87,33 +86,64 @@ redis_endpoint = tolist([
 vpc_id = "vpc-0ff57649c483b7635"
 ```
 
-2) Open your browser and go to the `app_endpoint` on HTTPS (http is no longer supported), for example: `https://gtp-uat-app-lb-2144828538.ap-southeast-1.elb.amazonaws.com/`. You shall see an error on Redis, which is correct because we haven't configured Redis endpoint yet. This indicates the ASG and ELB are working, plus php-fpm and nginx. The sample app is staged from `gtp-uat-app` S3 bucket.
+2) Open your browser and go to the `app_endpoint` on HTTPS (http is no longer supported), for example: `https://gtp-uat-app-lb-466289495.ap-southeast-1.elb.amazonaws.com/`. You shall see an error on Redis, which is correct because we haven't configured Redis endpoint yet. This indicates the ASG and ALB are working, plus php-fpm and nginx. The sample app is staged from `gtp-uat-app-bucket` S3 bucket.
 
-3) Before testing MySQL connectivity, create the MySQL database, user and password manually. SSH to the EC2 instance and run the following commands:
+3) Get the EC2 instance public IP address from the management console and SSH to the EC2 instance (SSH user is `ec2-user`):
 
 ```bash
-$ mysql -u {mysql-admin-user} -p -h {rds_endpoint_value_without_port} -P 3306
-mysql> CREATE DATABASE gtp;
-mysql> CREATE USER 'gtp'@'172.31.%.%' IDENTIFIED BY 'pass098TT';
-mysql> GRANT ALL PRIVILEGES ON gtp.* TO 'gtp'@'172.31.%.%';
+$ ssh -i {your_keypair_pem} ec2-user@{ec2_instance_public_ip_address}
+```
+* Or you could use Putty for Windows with the correct PPK.
 
-$ cd /usr/local/nginx/html/
-$ tar -xzf gtp-db.tar.gz
-$ sed 's/\sDEFINER=`[^`]*`@`[^`]*`//g' -i db_schema.sql
-$ mysql -f -ugtp -p -h gtpuatmysql.cdw9q2wnb00s.ap-southeast-1.rds.amazonaws.com gtp < db_schema.sql
-$ mysql -f -ugtp -p -h gtpuatmysql.cdw9q2wnb00s.ap-southeast-1.rds.amazonaws.com gtp < db_data.sql
+4) Escalate as root user and run the `bootstrap.sh` script:
+
+```bash
+$ sudo -i
+$ ./bootstrap.sh
 ```
 
-4) To test MySQL and Redis, you have to update the following file `/usr/local/nginx/html/gtp/source/snapapp_otc/config.ini` and specify the values on line 3 to 8 accordingly:
+*** If you get an error due to unfinished provisioning, wait for a couple of minutes and try again. This script should be running only after the provisioning script has finished. ***
 
-```ruby
-snap.db.host = gtpuatmysql.cdw9q2wnb00s.ap-southeast-1.rds.amazonaws.com:3306
-snap.db.username = gtp
-snap.db.password = pass098TT
-snap.cache.servers = gtp-uat-redis.u2yh4k.0001.apse1.cache.amazonaws.com:6379
+5) The script will ask a couple of questions. Answer them all accordingly, for example:
+
+```bash
+Collecting information.. Do not enter blank values!
+
+Enter the MySQL endpoint (without port) : gtpuatmysql.cdw9q2wnb00s.ap-southeast-1.rds.amazonaws.com
+Enter the Redis endpoint (without port) : gtp-uat-redis.u2yh4k.0001.apse1.cache.amazonaws.com
+Enter MySQL admin username              : gtpdbadmin
+Enter MySQL admin password              : MyGH7b3J
+Enter MySQL user to create              : gtp
+Enter MySQL user password for gtp : HbY6sdGbfhhsg4eC
+
+Configuring PHPmyAdmin..
+Configuring PHPRedisAdmin..
+Creating DB user..
+Staging MySQL database..
+ERROR 1419 (HY000) at line 3181: You do not have the SUPER privilege and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable)
+ERROR 1419 (HY000) at line 3209: You do not have the SUPER privilege and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable)
+ERROR 1419 (HY000) at line 1249: You do not have the SUPER privilege and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable)
+ERROR 1419 (HY000) at line 1277: You do not have the SUPER privilege and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable)
+Configuring application to use the specified MySQL and Redis hosts..
+Bootstrapping complete!
+
+Testing application with curl..
+Perfect! Application is reachable.
+Bootstrapping success.
+You may access the application from the load balancer endpoint.
 ```
 
-5) Save the file and you should be able to access `https://gtp-uat-app-lb-2144828538.ap-southeast-1.elb.amazonaws.com`. You should be able to access the application.
+*** You may ignore `ERROR 1419` generated by MySQL. It happens because RDS limits the SUPER privilege. ***
+
+6) You should be able to access `https://gtp-uat-app-lb-466289495.ap-southeast-1.elb.amazonaws.com` and see the landing page. 
+
+The deployment is now complete. Alternatively, you may simplify the URL by creating a DNS CNAME record and point it to the load balancer DNS name (`app_endpoint` value). For example, you would add the following in your DNS zone:
+
+```
+myapp.mydomain.com.      CNAME     500     gtp-uat-app-lb-2144828538.ap-southeast-1.elb.amazonaws.com
+```
+
+You should be able to access it via https://myapp.mydomain.com after the DNS is propagated.
 
 ## Destroy
 
@@ -127,7 +157,25 @@ Note that it won't destroy the existing VPC's resources including subnets, route
 
 ## Changelogs
 
-#### Version 0.1 - 9th May 2023 - branch 0.1 (master)
+#### Version 0.3 - 25th May 2023 - branch 0.3 (master)
+
+* Added `bootstrap.sh`
+* Added `amazon-cloudwatch-agent.json`
+* Added `waf.tf` - WAFv2 for ALB
+* Supported more variables inside `terraform.tfvars`
+* Improved `output.tf`
+* Removed unused modules and providers, `versions.tf`
+* Renamed `elb.tf` to `alb.tf`
+* Environment data interpolation for EC2 user data, `user-data-app.sh`
+* Added CloudWatch log group names for every service on EC2 instance `cloudwatch.tf`
+* Fixed phpRedisAdmin issue specifically for AEC, `bootstrap.sh`
+* Pinned nginx version to 1.24 from nginx-stable repo, `user-data-app.sh`
+
+#### Version 0.2 - 11th May 2023 - branch 0.2
+
+* Removed the hardcoded `vpc-id`
+
+#### Version 0.1 - 9th May 2023 - branch 0.1
 
 * First push
 * Assuming deployment on existing VPC

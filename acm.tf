@@ -13,14 +13,15 @@ resource "tls_self_signed_cert" "gtp-uat-app" {
   private_key_pem = tls_private_key.gtp-uat-app.private_key_pem
 
   subject {
-    common_name  = "GTP"
-    organization = "ACE Group"
-    country      = "MY"
+    common_name         = var.tls_common_name
+    organizational_unit = var.tls_organizational_unit
+    organization        = var.tls_organization
+    country             = var.tls_country
   }
 
-  dns_names = ["gtp-prod.dataspeed.my", "gtp2.dataspeed.my"]
+  dns_names = [var.tls_common_name]
 
-  validity_period_hours = 48
+  validity_period_hours = 2920 # 4 months
 
   allowed_uses = [
     "key_encipherment",

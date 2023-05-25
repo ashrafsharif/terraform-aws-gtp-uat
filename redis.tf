@@ -15,7 +15,7 @@ resource "aws_elasticache_cluster" "gtp_uat_redis" {
   cluster_id                 = "gtp-uat-redis"
   engine                     = "redis"
   engine_version             = "6.2"
-  node_type                  = "cache.t4g.small" # Real prod: "cache.r6g.2xlarge"
+  node_type                  = "cache.t4g.small" # Real UAT: "cache.r6g.large"
   num_cache_nodes            = 1
   parameter_group_name       = "default.redis6.x"
   apply_immediately          = true

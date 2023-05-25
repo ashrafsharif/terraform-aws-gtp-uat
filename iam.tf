@@ -76,6 +76,11 @@ resource "aws_iam_role_policy_attachment" "gtp_uat_ec2_instance_profile" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+resource "aws_iam_role_policy_attachment" "gtp_uat_cloudwatch_instance_profile" {
+  role       = aws_iam_role.gtp_uat_ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+}
+
 # the instance profile will be attached to EC2 instance to allow CodeDeploy. See aws_launch_configuration.
 resource "aws_iam_instance_profile" "gtp_uat_ec2_instance_profile" {
   name = "CodeDeploy-EC2-Instance-Profile"

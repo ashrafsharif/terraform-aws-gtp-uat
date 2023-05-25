@@ -14,7 +14,7 @@ resource "aws_db_subnet_group" "gtp_uat_mysql" {
 resource "aws_db_instance" "gtp_uat_mysql" {
   engine                          = "mysql"
   identifier                      = "gtpuatmysql"
-  allocated_storage               = 5 # Real prod: 500
+  allocated_storage               = 5 # Real UAT: 200
   engine_version                  = "8.0.32"
   instance_class                  = "db.t3.micro" # Real prod: db.m5d.xlarge
   port                            = 3306
@@ -32,26 +32,3 @@ resource "aws_db_instance" "gtp_uat_mysql" {
     Tier = "Database"
   }
 }
-
-# provider "mysql" {
-#   endpoint = aws_db_instance.gtp_uat_mysql.endpoint
-#   username = aws_db_instance.gtp_uat_mysql.username
-#   password = aws_db_instance.gtp_uat_mysql.password
-# }
-
-# resource "mysql_database" "gtp_uat_app" {
-#   name = "gtp"
-# }
-
-# resource "mysql_user" "gtp" {
-#   user               = "gtp"
-#   host               = "172.31.%.%"
-#   plaintext_password = "pass098TT"
-# }
-
-# resource "mysql_grant" "gtp" {
-#   user       = mysql_user.gtp.user
-#   host       = mysql_user.gtp.host
-#   database   = mysql_database.gtp_uat_app.name
-#   privileges = ["ALL PRIVILEGES"]
-# }
