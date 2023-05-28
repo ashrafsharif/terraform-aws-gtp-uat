@@ -39,6 +39,10 @@ resource "aws_cloudwatch_log_group" "gtp_uat_app_snap" {
     Environment = "UAT"
     Application = "snap"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 data "aws_cloudwatch_log_groups" "gtp_uat_app_php" {

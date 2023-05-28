@@ -6,7 +6,7 @@
 #####################
 
 resource "aws_iam_role" "gtp_uat_app_codedeploy_service" {
-  name = "codedeploy-service-role"
+  name = "CodeDeploy-Service-Role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -16,7 +16,7 @@ resource "aws_iam_role" "gtp_uat_app_codedeploy_service" {
         Effect = "Allow"
         Sid    = ""
         Principal = {
-          Service = "codedeploy.ap-southeast-1.amazonaws.com"
+          Service = "codedeploy.amazonaws.com"
         }
       },
     ]
@@ -71,14 +71,14 @@ resource "aws_iam_role_policy" "gtp_uat_ec2_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "gtp_uat_ec2_instance_profile" {
-  role       = aws_iam_role.gtp_uat_ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
 resource "aws_iam_role_policy_attachment" "gtp_uat_cloudwatch_instance_profile" {
   role       = aws_iam_role.gtp_uat_ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "gtp_uat_ssm_instance_profile" {
+  role       = aws_iam_role.gtp_uat_ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_role_policy_attachment" "gtp_uat_codedeploy_instance_profile" {

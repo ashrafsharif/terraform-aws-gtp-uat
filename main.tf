@@ -92,8 +92,17 @@ resource "aws_autoscaling_group" "gtp_uat_app" {
 
 }
 
-resource "aws_s3_object" "object" {
+# this flag is required to indicate infra is up
+resource "aws_s3_object" "deployed_flag" {
   bucket = var.s3_bucket_name
   key    = "configs/deployed_flag"
   source = "deployed_flag"
+}
+
+# this flag is required to indicate infra is bootstrapped
+resource "aws_s3_object" "config_bootstrapped" {
+  bucket = var.s3_bucket_name
+  key    = "configs/config-bootstrapped.ini"
+  source = "deployed_flag"
+  
 }

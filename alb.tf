@@ -35,6 +35,16 @@ resource "aws_lb_target_group" "gtp_uat_app_https" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = data.aws_vpc.target_vpc.id
+
+  health_check {
+    path                = "/index.php"
+    port                = 80
+    healthy_threshold   = 3
+    unhealthy_threshold = 2
+    timeout             = 2
+    interval            = 5
+    matcher             = "200"
+  }
 }
 
 resource "aws_autoscaling_attachment" "gtp_uat_app_https" {

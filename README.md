@@ -18,7 +18,7 @@ cd terraform-aws-gtp-uat
 
 4) Create a private S3 bucket (if not exists) named `gtp-uat-app-bucket`. Use your AWS Management Console.
 
-5) Upload the following files (this will be provided separately):
+5) Upload the following files (this will be provided separately, `GTP-UAT-S3-0.4.zip`):
 
 ```
 $ tree
@@ -157,7 +157,18 @@ Note that it won't destroy the existing VPC's resources including subnets, route
 
 ## Changelogs
 
-#### Version 0.3 - 25th May 2023 - branch 0.3 (master)
+#### Version 0.4 - 28th May 2023 - branch 0.4 (master)
+
+* Added new auto scaling host automatic provisioning, `user-data-app.sh`
+* Tuned target group healthcheck, `alb.sh`
+* Removed `elb.sh`
+* Removed AWS credential file for CodeDeploy to work, `user-data-app.sh`
+* Added logrotate definition, `user-data-app.sh`
+* Added SSM agent, `user-data-app.sh`
+* Set `HOST_COUNT` to 0 for UAT CodeDeploy, `codedeploy.tf`
+* Added S3 object flags for automatic provisioning, `main.tf`
+
+#### Version 0.3 - 25th May 2023 - branch 0.3
 
 * Added `bootstrap.sh`
 * Added `amazon-cloudwatch-agent.json`
